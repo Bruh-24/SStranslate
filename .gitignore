@@ -2,4 +2,3 @@
 !/models/.gitkeep
 /.venv
 /__pycache__
-/uv.lock
