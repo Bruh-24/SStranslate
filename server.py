@@ -78,4 +78,4 @@ def translation_request(request_body: dict, request: Request):
 def languages_request():
      # don't ask me, i know this sucks ass, but i wasn't the one who wrote the in-game front
      # it was firstly designed around libretranslate, so, uhm. here you go
-     return [ {"code": "ru", "name": "Russian", "targets": ["en"]}, {"code": "en", "name": "English", "targets": ["ru"]}] 
+     return [ {"code": "ru", "name": "Russian", "targets": ["en"]}, {"code": "en", "name": "English", "targets": ["ru"]}]
