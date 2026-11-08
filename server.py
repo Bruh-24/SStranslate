@@ -1,15 +1,34 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 import json
 from pathlib import Path
 from time import perf_counter
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from contextlib import asynccontextmanager
+import asyncio
+
 
 @asynccontextmanager
 async def life(app: FastAPI):
      app.state.translation_rules = load_rules()
      app.state.model, app.state.tokenizer = load_model()
+     app.state.queue = asyncio.Queue(maxsize=20)
+     app.state.worker = asyncio.create_task(worker(app))
      yield
+
+async def worker(app):
+     while True:
+          job = await app.state.queue.get()
+         
+          try:
+               output = await asyncio.to_thread(translate, job["text"], job["target"], app.state.translation_rules, app.state.model, app.state.tokenizer)
+               if not job["reply"].done():
+                    job["reply"].set_result(output)
+          except Exception as error:
+               if not job["reply"].done():
+                    job["reply"].set_exception(error)
+          finally:
+               app.state.queue.task_done()
+       
 
 server = FastAPI(lifespan=life)
 
@@ -64,15 +83,28 @@ def translate(text_to_translate, target_lang, rules, model, tokenizer):
      return f"{text}"
 
 @server.post("/translate")
-def translation_request(request_body: dict, request: Request):
+async def translation_request(request_body: dict, request: Request):
      q = request_body["q"]
      target = request_body["target"]
-     rules = request.app.state.translation_rules
-     model = request.app.state.model
-     tokenizer = request.app.state.tokenizer
-     output = translate(text_to_translate = q, target_lang=target, rules = rules, model = model, tokenizer = tokenizer)
-     return {"translatedText": f"{output}"}
+    # rules = request.app.state.translation_rules
+    # model = request.app.state.model
+    # tokenizer = request.app.state.tokenizer
+    # output = translate(text_to_translate = q, target_lang=target, rules = rules, model = model, tokenizer = tokenizer)
 
+
+     reply = asyncio.get_running_loop().create_future()
+     job = {
+    "text": q,
+    "target": target,
+    "reply": reply,
+     }
+     try:
+          request.app.state.queue.put_nowait(job)
+     except asyncio.QueueFull:
+          raise HTTPException(status_code=418, detail="Queue is full") #imateapot
+     
+     output = await reply
+     return {"translatedText": f"{output}"}
 
 @server.get("/languages")
 def languages_request():

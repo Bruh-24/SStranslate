@@ -4,7 +4,7 @@ I have no affilation with that PR, I was tasked (by myself, lol) to make a bette
 This runs on a CPU, tested with AMD Ryzen 5 8400F, latency per request is 1.5-2 seconds; Ryzen 9 7950x tests are in progress
 
 You need docker and hugging face hub installed and available in path
-To run this just paste ``hf download pfnet/plamo-3-translate-0.8b --local-dir models/`` and ``docker compose --build``
+To run this just paste ``hf download pfnet/plamo-3-translate-0.8b --local-dir models/plamo-3-translate-0.8b`` and ``docker compose --build``
 The service will run on localhost:3535 (change this in compose if for any reason you want to inference the model on a remote server away from the SS13 hosting)
 After you see ``translate-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)`` you can detach from container and run the following:
 
@@ -24,5 +24,8 @@ This will translate whatever's put into q to Russian. You can do it in both ways
     {"source": "Warden", "target": "Смотритель"},
     {"source": "Смотритель", "target": "Warden"},
 ```
+
+You can also use ``translate.py`` to run this in CLI for testing purpouses without installing and building the docker compose.
+Both require manual installation of model weights by using ``hf download pfnet/plamo-3-translate-0.8b --local-dir models/plamo-3-translate-0.8b``
 
 And by the way, if you for any reason stumble upon this repository, I highly advise you to write your SS13 frontend for chat, because the one currently [available](https://github.com/Alliance-codeBase/PostMeta/pull/238/) could have some refactoring by an better maintainer.
