@@ -41,9 +41,6 @@ while True:
     except ValueError:
         print(f"Choose between 1-{total_languages_supported}")
 
-
-
-
 text_to_translate = input("Text to translate:")
 translate_into = languages[chosen_language - 1]
 translate_from = languages[input_language - 1]
@@ -62,7 +59,6 @@ counter_start = perf_counter()
 
 print(f"Running {model.name_or_path} on {model.device}")
 
-
 inputs = tokenizer.apply_chat_template(
     [{"role": "user", "content": f" {text_to_translate}"}],
     target_lang=f"{output_language_code}",
@@ -75,10 +71,6 @@ output = model.generate(**inputs, do_sample=False, max_new_tokens=512)
 text = tokenizer.decode(output[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True)
 print(text)
 
-
 counter_end = perf_counter() - counter_start
 
 print(f"Done! Time elapsed: {counter_end} s. Output:{text}")
-
-
-
