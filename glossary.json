@@ -40,5 +40,11 @@
     {"source": "Syndicate", "target": "Синдикат"},
     {"source": "Синдикат", "target": "Syndicate"},
     {"source": "Changeling", "target": "Генокрад"},
-    {"source": "Генокрад", "target": "Changeling"}
+    {"source": "Генокрад", "target": "Changeling"},
+    {"source": "Трейтор", "target": "Traitor"},
+    {"source": "Traitor", "target": "Предатель"},
+    {"source": "Станбатон", "target": "Stun-baton"},
+    {"source": "Stunbaton", "target": "Станбатон"},
+    {"source": "Антикварка", "target": "Antique Laser-Gun"},
+    {"source": "Cap-gun", "target": "Антикварный лазган"}
 ]

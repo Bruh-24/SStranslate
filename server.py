@@ -5,14 +5,11 @@ from time import perf_counter
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from contextlib import asynccontextmanager
 
-
-
 @asynccontextmanager
 async def life(app: FastAPI):
      app.state.translation_rules = load_rules()
      app.state.model, app.state.tokenizer = load_model()
      yield
-
 
 server = FastAPI(lifespan=life)
 
@@ -49,11 +46,11 @@ def load_model():
      print(f"Running {model.name_or_path} on {model.device}")
 
      counter_end = perf_counter() - counter_start
-     print(f"{counter_end}")
+     print(f"Loading complete! Loading took {counter_end} seconds to complete")
      return model, tokenizer
 
-def translate(text_to_translate, target_lang, source_lang, rules, model, tokenizer):
-     
+def translate(text_to_translate, target_lang, rules, model, tokenizer):
+
      inputs = tokenizer.apply_chat_template(
     [{"role": "user", "content": f" {text_to_translate}"}],
     target_lang=f"{target_lang}",
@@ -66,3 +63,19 @@ def translate(text_to_translate, target_lang, source_lang, rules, model, tokeniz
      text = tokenizer.decode(output[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True)
      return f"{text}"
 
+@server.post("/translate")
+def translation_request(request_body: dict, request: Request):
+     q = request_body["q"]
+     target = request_body["target"]
+     rules = request.app.state.translation_rules
+     model = request.app.state.model
+     tokenizer = request.app.state.tokenizer
+     output = translate(text_to_translate = q, target_lang=target, rules = rules, model = model, tokenizer = tokenizer)
+     return {"translatedText": f"{output}"}
+
+
+@server.get("/languages")
+def languages_request():
+     # don't ask me, i know this sucks ass, but i wasn't the one who wrote the in-game front
+     # it was firstly designed around libretranslate, so, uhm. here you go
+     return [ {"code": "ru", "name": "Russian", "targets": ["en"]}, {"code": "en", "name": "English", "targets": ["ru"]}] 
