@@ -1,0 +1,9 @@
+services:
+  translate:
+     command: uv run --no-sync uvicorn server:server --host 0.0.0.0
+     build: .
+     ports: 
+       - 127.0.0.1:3535:8000
+     volumes: 
+        - "./models/plamo-3-translate-0.8b:/app/models/plamo-3-translate-0.8b:ro"
+        - "./glossary.json:/app/glossary.json:ro"
