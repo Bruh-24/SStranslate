@@ -24,3 +24,5 @@ This will translate whatever's put into q to Russian. You can do it in both ways
     {"source": "Warden", "target": "Смотритель"},
     {"source": "Смотритель", "target": "Warden"},
 ```
+
+And by the way, if you for any reason stumble upon this repository, I highly advise you to write your SS13 frontend for chat, because the one currently [available](https://github.com/Alliance-codeBase/PostMeta/pull/238/) could have some refactoring by an better maintainer.
