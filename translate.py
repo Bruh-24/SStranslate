@@ -1,51 +1,89 @@
-import onnxruntime_genai as onnx
-from transformers import AutoTokenizer
+from time import perf_counter
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from pathlib import Path
+import json
+
+path = Path('glossary.json')
 
 languages = ["Russian", "English"]
 
-total_languages_supported = int(len(languages))
+print("Loading translation rules...")
+any_rules = path.exists()
+with open('glossary.json', encoding="UTF-8") as file:
+    SS13_slang_glossary = json.load(file)
+print(f"Succesfully Loaded {len(SS13_slang_glossary)} Rules" if any_rules else "No translation rules found, skipping") 
 
-model = onnx.Model("models/Q4_KQuant_tie/cpu") #  make this configurable
-tokenizer = AutoTokenizer.from_pretrained("models/Q4_KQuant_tie/cpu")
+
+total_languages_supported = int(len(languages))
 
 while True:
     try:
-        
         for numered_entry, lang in enumerate(languages, start=1):
             print(f"{numered_entry}. {lang}")
-
         chosen_language= int(input(f"Choose output language:"))
         if(chosen_language > total_languages_supported or chosen_language < 1):
             print("Out of bounds!")
             continue
         else:
-            break
+            try:
+                 for numered_entry, lang in enumerate(languages, start=1):
+                     print(f"{numered_entry}. {lang}")
+
+                 input_language= int(input(f"Choose input language:"))
+                 if(input_language > total_languages_supported or chosen_language < 1):
+                     print("Out of bounds!")
+                     continue
+                 else:
+                     break
+            except ValueError:
+                print(f"Choose between 1-{total_languages_supported}")
+
     except ValueError:
         print(f"Choose between 1-{total_languages_supported}")
 
+
+
+
 text_to_translate = input("Text to translate:")
 translate_into = languages[chosen_language - 1]
+translate_from = languages[input_language - 1]
 
 print(f"text: {text_to_translate}, translating into: {translate_into}")
 
-# based of https://huggingface.co/justinchuby/Hy-MT2-1.8B-ONNX#usage-onnx-runtime-genai
+output_language_code = {"Russian": "ru", "English": "en"}[translate_into]
+input_language_code = {"Russian": "ru", "English": "en"}[translate_from]
 
-prompt = f"Translate the following text into {translate_into}. Output only the translation:\n{text_to_translate}"
-message = {"role": "user", "content": prompt}
+tokenizer = AutoTokenizer.from_pretrained("models/plamo-3-translate-0.8b", trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(
+    "models/plamo-3-translate-0.8b", trust_remote_code=True, dtype="bfloat16", device_map="auto",
+)
 
-prompt = tokenizer.apply_chat_template([message], tokenize=False,
-                                 add_generation_prompt=True)
-ids = tokenizer(prompt, return_tensors="np")["input_ids"].astype("int32")
+counter_start = perf_counter()
 
-params = onnx.GeneratorParams(model)
-params.set_search_options(max_length=256, do_sample=False)
-gen = onnx.Generator(model, params)
-gen.append_tokens(ids[0])
-out = []
-while not gen.is_done():
-    gen.generate_next_token()
-    out.append(gen.get_next_tokens()[0])
+#
 
-output = tokenizer.decode(out, skip_special_tokens=True)
 
-print(f"{output}")
+print(f"Running {model.name_or_path} on {model.device}")
+
+
+inputs = tokenizer.apply_chat_template(
+    [{"role": "user", "content": f" {text_to_translate}"}],
+    target_lang=f"{output_language_code}",
+glossary=SS13_slang_glossary,
+    add_generation_prompt=True,
+    return_dict=True, return_tensors="pt",
+).to(model.device)
+
+output = model.generate(**inputs, do_sample=False, max_new_tokens=512)
+text = tokenizer.decode(output[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+print(text)
+
+
+
+
+counter_end = perf_counter() - counter_start
+
+print(f"Done! Time elapsed: {counter_end} s. Output:{text}")
+
+
+
