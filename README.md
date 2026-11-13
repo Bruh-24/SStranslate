@@ -1,10 +1,10 @@
 Tiny docker-application for translating SS13 chat, currently supports two languages RU/EN
 Made by Bruh24 with love, without AI (used for debug only) [SS13-chat frontend made by maximal08](https://github.com/Alliance-codeBase/PostMeta/pull/238/)
 I have no affilation with that PR, I was tasked (by myself, lol) to make a better backend, with a bigger model and a glossary, because apparently Libretranslate wasn't enough for me.
-This runs on a CPU, tested with AMD Ryzen 5 8400F, latency per request is 1.5-2 seconds; Ryzen 9 7950x tests are in progress
+This runs on a CPU, tested with AMD Ryzen 5 8400F, latency per request is 1.5-2 seconds; Ryzen 9 7950x - is simillar (I haven't added any logging for each request so there won't be any certain numbers)
 
 You need docker and hugging face hub installed and available in path
-To run this just paste ``hf download pfnet/plamo-3-translate-0.8b --local-dir models/plamo-3-translate-0.8b`` and ``docker compose --build``
+To run this just paste ``hf download pfnet/plamo-3-translate-0.8b --local-dir models/plamo-3-translate-0.8b`` and ``docker compose --build`` or ``docker compose up`` it will build the images either way
 The service will run on localhost:3535 (change this in compose if for any reason you want to inference the model on a remote server away from the SS13 hosting)
 After you see ``translate-1  | INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)`` you can detach from container and run the following:
 
